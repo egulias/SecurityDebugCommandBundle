@@ -12,6 +12,7 @@ use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Security\Core\Authentication\Token\AnonymousToken;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Egulias\SecurityDebugCommandBundle\HttpKernel\SimpleHttpKernel;
 
 /**
@@ -28,6 +29,7 @@ class SecurityDebugFirewallsCommand extends ContainerAwareCommand
                 new InputArgument('uri', InputArgument::REQUIRED, "The exact URI you have in the firewall"),
                 new InputArgument('firewall', InputArgument::REQUIRED, "Firewall name"),
                 new InputArgument('username', InputArgument::REQUIRED, "User to test"),
+                new InputArgument('roles', InputArgument::IS_ARRAY, "Multiple space separated roles for the user"),
             )
         )
         ->setHelp(
@@ -40,14 +42,12 @@ EOF
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        //$securityContext = $this->getContainer()->get('security.firewall.map.context.secured_area')->getContext();
-
-        $uri = '/demo/secured/hello/admin/';
         $uri = $input->getArgument('uri');
         $firewallProvider = $input->getArgument('firewall');
         $username = $input->getArgument('username');
+        $roles = $input->getArgument('roles');
 
-        $token = new AnonymousToken($firewallProvider, $username, ['ROLE_ADMIN']);
+        $token = new AnonymousToken($firewallProvider, $username, $roles);
         $session = $this->getContainer()->get('session');
         $session->setName('security.debug.console');
         $session->set('_security_' . $firewallProvider, serialize($token));
@@ -58,10 +58,17 @@ EOF
         $request->setSession($session);
         $event = new GetResponseEvent($kernel, $request, HttpKernelInterface::MASTER_REQUEST);
 
-        $rto = $this->getContainer()->get('security.firewall')->onKernelRequest($event);
-        \Doctrine\Common\Util\Debug::dump($rto);
-
-        \Doctrine\Common\Util\Debug::dump($event->getResponse());
-
+        try {
+            $this->getContainer()->get('security.firewall')->onKernelRequest($event);
+            $output->writeln(sprintf('<info>Access Granted</info>'));
+        } catch (AccessDeniedException $ade) {
+            $output->writeln(
+                sprintf(
+                    '<error>Acces Denied</error> for firewall <comment>%s</comment> and roles <comment>%s</comment>',
+                    $firewallProvider,
+                    implode($roles, ',')
+                )
+            );
+        }
     }
 }
