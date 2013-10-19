@@ -70,5 +70,31 @@ EOF
                 )
             );
         }
+        $map = $this->getContainer()->get('security.firewall.map.context.' . $firewallProvider);
+        $formatter = $this->getHelperSet()->get('formatter');
+        $formattedLine = $formatter->formatSection(
+            "Who's listening?",
+            sprintf('Firewall <comment>%s</comment> listeners', $firewallProvider)
+        );
+        $output->writeln($formattedLine);
+        $table = $this->getHelperSet()->get('table');
+        $table->setHeaders(array('Class', 'Stopped propagation'));
+        $firewallContext = $map->getContext();
+        $event = new GetResponseEvent($kernel, $request, HttpKernelInterface::MASTER_REQUEST);
+        foreach ($firewallContext[0] as $listener) {
+            $row = array(get_class($listener));
+            try {
+                $listener->handle($event);
+            } catch (AccessDeniedException $ade) {
+                $row[] = 'X';
+                $table->addRow($row);
+                break;
+            }
+            if ($event->hasResponse()) {
+                $row[] = 'X';
+            }
+            $table->addRow($row);
+        }
+        $table->render($output);
     }
 }
