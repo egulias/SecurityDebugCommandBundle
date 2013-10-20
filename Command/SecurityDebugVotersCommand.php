@@ -8,8 +8,8 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Output\Output;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
-use Egulias\SecurityDebugCommandBundle\Security\Token\AuthenticatedToken;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
+use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
 
 /**
  * ListenersCommand
@@ -24,9 +24,15 @@ class SecurityDebugVotersCommand extends ContainerAwareCommand
         ->setDescription('Debug Security access to given Obtainsects or Urls')
         ->setDefinition(
             array(
-                new InputArgument('secured_area', InputArgument::REQUIRED, "Secured area of the app"),
-                new InputArgument('username', InputArgument::REQUIRED, "Vote over some attribute"),
-                new InputArgument('password', InputArgument::REQUIRED, "pass"),
+                new InputArgument('firewall', InputArgument::REQUIRED, "Secured area of the app"),
+                new InputArgument('username', InputArgument::REQUIRED, "Username to authenticate"),
+                new InputArgument('password', InputArgument::REQUIRED, "Username Password"),
+                new InputOption(
+                    'strategy',
+                    null,
+                    InputOption::VALUE_REQUIRED,
+                    "Strategy used to authorize. Possible values are: Affirmative (default), Unanimous, Consensus"
+                )
             )
         )
         ->setHelp(
@@ -37,37 +43,75 @@ EOF
         );
     }
 
-    //auth use
-    //fake user for roles
-    //roles-> view role hierarchy
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-
         $token = new UsernamePasswordToken(
             $input->getArgument('username'),
             $input->getArgument('password'),
-            $input->getArgument('secured_area'),
-            ['ROLE_ADMIN']
+            $input->getArgument('firewall')
         );
-        //$token = new AuthenticatedToken(['ROLE_ADMIN']);
-        $ll = $this->getContainer()->get('security.authentication.manager')->authenticate($token);
+        $strategy = $input->getOption('strategy', false);
 
-        $securityContext = $this->getContainer()->get('security.access.decision_manager')
-            ->decide($token, ['ROLE_USER' ]);
-        $decision = $this->getContainer()->get('security.access.decision_manager')->supportsClass('ROLE_ADMIN');
-        \Doctrine\Common\Util\Debug::dump($securityContext);
-        \Doctrine\Common\Util\Debug::dump($ll->isAuthenticated());
+        $token = $this->getContainer()->get('security.authentication.manager')->authenticate($token);
 
-        //$this->services['security.authentication.manager'] =
-        //    $instance = new \Symfony\Component\Security\Core\Authentication\AuthenticationProviderManager(
-        //        array(0 => new \Symfony\Component\Security\Core\Authentication\Provider\DaoAuthenticationProvider(
-        //            $this->get('security.user.provider.concrete.in_memory'),
-        //            new \Symfony\Component\Security\Core\User\UserChecker(),
-        //            'secured_area',
-        //            $this->get('security.encoder_factory'),
-        //            true)
-        //        ),
-        //        true);
+        $roles = $token->getRoles();
+        foreach ($roles as $role) {
+            $rolesStrings[] = $role->getRole();
+        }
 
+        $decision = $this->getContainer()->get('security.access.decision_manager')->decide($token, $rolesStrings);
+        $decisionManager = $this->getContainer()->get('security.access.decision_manager');
+
+        $rflClass = new \ReflectionClass('Symfony\Component\Security\Core\Authorization\AccessDecisionManager');
+        $rflStrategy = $rflClass->getProperty('strategy');
+        $rflStrategy->setAccessible(true);
+        $currentStrategy = $rflStrategy->getValue($decisionManager);
+        if ($strategy) {
+            $rflStrategy->setValue('strategy', $strategy);
+            $currentStrategy = $strategy;
+        }
+
+        $rflVoters = $rflClass->getProperty('voters');
+        $rflVoters->setAccessible(true);
+        $voters = $rflVoters->getValue($decisionManager);
+
+        $formatter = $this->getHelperSet()->get('formatter');
+        $formattedLine = $formatter->formatSection(
+            "Who's voting?",
+            'Vote intention'
+        );
+
+        $output->writeln($formattedLine);
+        $table = $this->getHelperSet()->get('table');
+        $table->setHeaders(array('Class', 'Abstain', 'Grant', 'Deny'));
+
+        foreach ($voters as $voter) {
+            $result = $voter->vote($token, null, ['ROLE_USER']);
+            switch ($result) {
+                case VoterInterface::ACCESS_ABSTAIN:
+                    $row = array(get_class($voter),'X');
+                    break;
+                case VoterInterface::ACCESS_GRANTED:
+                    $row = array(get_class($voter),'','X');
+                    break;
+                case VoterInterface::ACCESS_DENIED:
+                    $row = array(get_class($voter),'', '', 'X');
+                    break;
+            }
+            $table->addRow($row);
+        }
+        $table->render($output);
+
+        $formattedLine = $formatter->formatSection(
+            'Strategy',
+            $currentStrategy
+        );
+        $output->writeln($formattedLine);
+
+        $formattedLine = $formatter->formatSection(
+            'Result',
+            ($decision) ? 'Allow' : 'Deny'
+        );
+        $output->writeln($formattedLine);
     }
 }
