@@ -1,0 +1,25 @@
+{
+  "name":         "egulias/security-debug-command-bundle",
+  "description":  "Symfony 2 console commands to debug security",
+  "homepage":     "https://github.com/egulias/SecurityDebugCommandBundle.git",
+  "type":         "symfony-bundle",
+  "keywords":     ["security", "listeners", "debug"],
+  "license":      "MIT",
+  "authors":      [
+  {
+    "name":     "Eduardo Gulias Davis",
+    "homepage": "http://egulias.com"
+  }
+  ],
+    "require":      {
+      "php":              ">=5.3.3",
+      "symfony/symfony":  ">=2.3"
+
+    },
+    "autoload":     {
+      "psr-0": { "Egulias\\SecurityDebugCommandBundle": "" }
+    },
+    "target-dir": "Egulias/SecurityDebugCommandBundle"
+}
+
+
