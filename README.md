@@ -6,29 +6,30 @@ security in a simple way, by inspecting Voters, Listeners and (yet to come) ACL.
 ## IMPORTANT
 
 This bundle fakes credentials and tokens to be able to inspect permissions. This implies a possible security hole in
-your application, please be aware of this. *I'm not responsible for any issue derived for a misuse or an insecure use of
-it* 
+your application, please be aware of this. *I'm not responsible for any issue derived for a misuse or an insecure use of it* 
 
 # Usage
 
 As for any command you should use: `app/console` from your project root.
 Current available commands are:
+
 - `app/console security:debug:firewalls`  to view listeners for a firewall.
 - `app/console security:debug:voters`     to display voters, voters vote and result.
 
 ## Available options
 
-There are 4 available options:
+There are 2 available options:
+
 - `app/console security:debug:firewalls uri firewall username roles`
-uri                   The exact URI you have in the firewall
-firewall              Firewall name
-username              User to test
-roles                 Multiple space separated roles for the user
+-- uri                   The exact URI you have in the firewall
+-- firewall              Firewall name
+-- username              User to test
+-- roles                 Multiple space separated roles for the user
 
 - `app/console security:debug:voters` (this can be faked too, but for the moment a real user is needed)
-firewall              Secured area of the app
-username              Username to authenticate
-password              Username Password
+-- firewall              Secured area of the app
+-- username              Username to authenticate
+-- password              Username Password
 
 ## Sample output 
 * `app/console security:debug:firewalls`  [here](https://gist.github.com/egulias/7186738)
