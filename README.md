@@ -20,16 +20,16 @@ Current available commands are:
 
 There are 2 available options:
 
-- `app/console security:debug:firewalls uri firewall username roles`
--- uri                   The exact URI you have in the firewall
--- firewall              Firewall name
--- username              User to test
--- roles                 Multiple space separated roles for the user
+* `app/console security:debug:firewalls uri firewall username roles`
+ * `uri`         The exact URI you have in the firewall
+ * `firewall`    Firewall name
+ * `username`    User to test
+ * `roles`       Multiple space separated roles for the user
 
-- `app/console security:debug:voters` (this can be faked too, but for the moment a real user is needed)
--- firewall              Secured area of the app
--- username              Username to authenticate
--- password              Username Password
+* `app/console security:debug:voters` (this can be faked too, but for the moment a real user is needed)
+ * `firewall`              Secured area of the app
+ * `username`              Username to authenticate
+ * `password`              Username Password
 
 ## Sample output 
 * `app/console security:debug:firewalls`  [here](https://gist.github.com/egulias/7186738)
