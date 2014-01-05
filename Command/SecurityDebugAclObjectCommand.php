@@ -8,12 +8,8 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Output\Output;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
-use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
-use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
-use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Acl\Domain\ObjectIdentity;
 use Symfony\Component\Security\Acl\Domain\UserSecurityIdentity;
-use Symfony\Component\Security\Acl\Permission\MaskBuilder;
 use Symfony\Component\Security\Acl\Exception\NoAceFoundException;
 
 /**
@@ -106,6 +102,15 @@ EOF
         );
     }
 
+    /**
+     * getAccesses
+     *
+     * @param mixed     $acl
+     * @param array     $masks
+     * @param array     $sids
+     * @param string    $field
+     * @return array
+     */
     protected function getAccesses($acl, array $masks, array $sids, $field = null)
     {
         $result = [];

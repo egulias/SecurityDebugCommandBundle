@@ -10,6 +10,8 @@ use Symfony\Component\Console\Output\Output;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
+use Egulias\SecurityDebugCommandBundle\Security\Voter\VotersDebug;
+use Egulias\SecurityDebugCommandBundle\Security\Authorization\DecisionManagerDebug;
 
 /**
  *  Voters debug command
@@ -51,29 +53,16 @@ EOF
             $input->getArgument('firewall')
         );
         $strategy = $input->getOption('strategy', false);
+        $votersDebug = new VotersDebug($this->getContainer()->get('security.access.decision_manager'));
+        $decisionMngrDebug = new DecisionManagerDebug($this->getContainer()->get('security.access.decision_manager'));
+
 
         $token = $this->getContainer()->get('security.authentication.manager')->authenticate($token);
 
-        $roles = $token->getRoles();
-        foreach ($roles as $role) {
-            $rolesStrings[] = $role->getRole();
-        }
-
-        $decision = $this->getContainer()->get('security.access.decision_manager')->decide($token, $rolesStrings);
-        $decisionManager = $this->getContainer()->get('security.access.decision_manager');
-
-        $rflClass = new \ReflectionClass('Symfony\Component\Security\Core\Authorization\AccessDecisionManager');
-        $rflStrategy = $rflClass->getProperty('strategy');
-        $rflStrategy->setAccessible(true);
-        $currentStrategy = $rflStrategy->getValue($decisionManager);
         if ($strategy) {
-            $rflStrategy->setValue('strategy', $strategy);
-            $currentStrategy = $strategy;
+            $decisionMngrDebug->setDecisionManagerStrategy($strategy);
         }
-
-        $rflVoters = $rflClass->getProperty('voters');
-        $rflVoters->setAccessible(true);
-        $voters = $rflVoters->getValue($decisionManager);
+        $decision = $decisionMngrDebug->decide($token);
 
         $formatter = $this->getHelperSet()->get('formatter');
         $formattedLine = $formatter->formatSection(
@@ -84,18 +73,18 @@ EOF
         $output->writeln($formattedLine);
         $table = $this->getHelperSet()->get('table');
         $table->setHeaders(array('Class', 'Abstain', 'Grant', 'Deny'));
+        $votes = $votersDebug->getVotersVote($token);
 
-        foreach ($voters as $voter) {
-            $result = $voter->vote($token, null, ['ROLE_USER']);
-            switch ($result) {
+        foreach ($votes as $vote) {
+            switch ($vote[1]) {
                 case VoterInterface::ACCESS_ABSTAIN:
-                    $row = array(get_class($voter),'X');
+                    $row = array($vote[0], 'X');
                     break;
                 case VoterInterface::ACCESS_GRANTED:
-                    $row = array(get_class($voter),'','X');
+                    $row = array($vote[0], '', 'X');
                     break;
                 case VoterInterface::ACCESS_DENIED:
-                    $row = array(get_class($voter),'', '', 'X');
+                    $row = array($vote[0], '', '', 'X');
                     break;
             }
             $table->addRow($row);
@@ -104,7 +93,7 @@ EOF
 
         $formattedLine = $formatter->formatSection(
             'Strategy',
-            $currentStrategy
+            $decisionMngrDebug->getDecisionManagerStrategy()
         );
         $output->writeln($formattedLine);
 
