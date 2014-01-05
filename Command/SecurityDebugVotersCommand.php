@@ -12,7 +12,7 @@ use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
 
 /**
- * ListenersCommand
+ *  Voters debug command
  *
  * @author Eduardo Gulias <me@egulias.com>
  */
@@ -21,7 +21,7 @@ class SecurityDebugVotersCommand extends ContainerAwareCommand
     protected function configure()
     {
         $this->setName('security:debug:voters')
-        ->setDescription('Debug Security access to given Obtainsects or Urls')
+        ->setDescription('Debug Security access to given Urls')
         ->setDefinition(
             array(
                 new InputArgument('firewall', InputArgument::REQUIRED, "Secured area of the app"),
