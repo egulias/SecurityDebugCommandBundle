@@ -7,9 +7,9 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Output\Output;
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
+use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Egulias\SecurityDebugCommandBundle\Security\Voter\VotersDebug;
 use Egulias\SecurityDebugCommandBundle\Security\Authorization\DecisionManagerDebug;
 
@@ -18,23 +18,32 @@ use Egulias\SecurityDebugCommandBundle\Security\Authorization\DecisionManagerDeb
  *
  * @author Eduardo Gulias <me@egulias.com>
  */
-class SecurityDebugVotersCommand extends ContainerAwareCommand
+class SecurityDebugAclVotersCommand extends ContainerAwareCommand
 {
     protected function configure()
     {
-        $this->setName('security:debug:voters')
+        $this->setName('security:debug:acl_voters')
         ->setDescription('Debug Security access to given Urls')
         ->setDefinition(
             array(
-                new InputArgument('firewall', InputArgument::REQUIRED, "Secured area of the app"),
-                new InputArgument('username', InputArgument::REQUIRED, "Username to authenticate"),
-                new InputArgument('password', InputArgument::REQUIRED, "Username Password"),
+                new InputArgument('username', InputArgument::REQUIRED, "The username for which to debug"),
                 new InputOption(
                     'strategy',
                     null,
                     InputOption::VALUE_REQUIRED,
                     "Strategy used to authorize. Possible values are: Affirmative (default), Unanimous, Consensus"
-                )
+                ),
+                new InputArgument(
+                    'fqcn',
+                    InputArgument::REQUIRED,
+                    "Fully Qualified Class Name using / "
+                ),
+                new InputArgument('oid', InputArgument::REQUIRED, "Object ID"),
+                new InputArgument(
+                    'perms',
+                    InputArgument::IS_ARRAY | InputArgument::REQUIRED,
+                    "Permissions strings, e.g: OWNER"
+                ),
             )
         )
         ->setHelp(
@@ -47,16 +56,21 @@ EOF
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $class = '\\' . str_replace('/', '\\', $input->getArgument('fqcn'));
+        $oid = (int) $input->getArgument('oid');
+        $strategy = $input->getOption('strategy', false);
+
         $token = new UsernamePasswordToken(
             $input->getArgument('username'),
-            $input->getArgument('password'),
-            $input->getArgument('firewall')
+            'fakepass', //$input->getArgument('password'),
+            'secured_area', //$input->getArgument('firewall')
+            $input->getArgument('perms')
         );
-        $strategy = $input->getOption('strategy', false);
-        $votersDebug = new VotersDebug($this->getContainer()->get('security.access.decision_manager'));
-        $decisionMngrDebug = new DecisionManagerDebug($this->getContainer()->get('security.access.decision_manager'));
 
-        $token = $this->getContainer()->get('security.authentication.manager')->authenticate($token);
+        $votersDebug = new VotersDebug($this->getContainer()->get('security.access.decision_manager'));
+        $votersDebug->setAcl($class, $oid);
+        $decisionMngrDebug = new DecisionManagerDebug($this->getContainer()->get('security.access.decision_manager'));
+        $decisionMngrDebug->setAcl($class, $oid);
 
         if ($strategy) {
             $decisionMngrDebug->setDecisionManagerStrategy($strategy);

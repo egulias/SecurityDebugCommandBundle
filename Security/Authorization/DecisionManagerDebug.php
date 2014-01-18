@@ -5,6 +5,7 @@ namespace Egulias\SecurityDebugCommandBundle\Security\Authorization;
 use Symfony\Component\Security\Core\Authorization\AccessDecisionManagerInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Acl\Domain\UserSecurityIdentity;
+use Symfony\Component\Security\Acl\Domain\ObjectIdentity;
 use Egulias\SecurityDebugCommandBundle\Security\DebugUtils;
 
 class DecisionManagerDebug
@@ -20,12 +21,6 @@ class DecisionManagerDebug
 
     public function getDecisionManagerStrategy()
     {
-        if (!$this->strategy) {
-            $rflStrategy = $this->rflClass->getProperty('strategy');
-            $rflStrategy->setAccessible(true);
-            $this->strategy = $rflStrategy->getValue($this->decisionManager);
-        }
-
         return $this->strategy;
     }
 

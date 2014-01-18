@@ -7,17 +7,17 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Output\Output;
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Security\Acl\Domain\ObjectIdentity;
 use Symfony\Component\Security\Acl\Domain\UserSecurityIdentity;
 use Symfony\Component\Security\Acl\Exception\NoAceFoundException;
+use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 
 /**
  *  ACL Objects debug command
  *
- * @author Eduardo Gulias <me@egulias.com>
+ * @author Eduardo Gulias Davis<me@egulias.com>
  */
-class SecurityDebugAclObjectCommand extends ContainerAwareCommand
+class  SecurityDebugAclObjectCommand extends ContainerAwareCommand
 {
     protected function configure()
     {
@@ -54,10 +54,7 @@ EOF
     }
 
     /**
-     * execute
-     *
-     * @param InputInterface $input
-     * @param OutputInterface $output
+     * {@inherit}
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
@@ -72,7 +69,9 @@ EOF
                 $v = (int)$v;
             }
         );
-        $user = new \Symfony\Component\Security\Core\User\User($username, 'fakepass');
+
+        $userClass = $this->getContainer()->getParameter('egulias_security_debug.user_class');
+        $user = new $userClass($username, 'fakepass');
         $securityIdentity = UserSecurityIdentity::fromAccount($user);
 
         $aclProvider = $this->getContainer()->get('security.acl.provider');
@@ -80,16 +79,16 @@ EOF
         $object->setId($oid);
         $objectIdentity = ObjectIdentity::fromDomainObject($object);
 
-        $acl = $aclProvider->findAcl($objectIdentity, [$securityIdentity]);
-        $results = $this->getAccesses($acl, $masks, [$securityIdentity], $field);
+        $acl = $aclProvider->findAcl($objectIdentity, array($securityIdentity));
+        $results = $this->getAccesses($acl, $masks, array($securityIdentity), $field);
 
         $output->writeln(sprintf('For Class/Object <info>%s::id == %d</info>', $class, $oid));
         $output->writeln(sprintf('With User <info>%s</info>', $username));
         if ($field) {
-            $access = $acl->isFieldGranted($field, [$mask], [$securityIdentity], false);
+            $access = $acl->isFieldGranted($field, array($mask), array($securityIdentity), false);
             $output->writeln(sprintf('For field <info>%s</info>', $field));
         } else {
-            $access = $acl->isGranted($masks, [$securityIdentity], false) ? 'Allow' : 'Deny';
+            $access = $acl->isGranted($masks, array($securityIdentity), false) ? 'Allow' : 'Deny';
         }
 
         $table = $this->getHelperSet()->get('table');
@@ -119,12 +118,12 @@ EOF
             $denied = 'X';
             try {
                 if (null === $field) {
-                    if ($acl->isGranted([$mask], $sids, false)) {
+                    if ($acl->isGranted(array($mask), $sids, false)) {
                         $granted = 'X';
                         $denied = '';
                     }
-                } else {
-                    if ($acl->isFieldGranted($field, [$mask], $sids, false)) {
+               } else {
+                    if ($acl->isFieldGranted($field, array($mask), $sids, false)) {
                         $granted = 'X';
                         $denied = '';
                     }
