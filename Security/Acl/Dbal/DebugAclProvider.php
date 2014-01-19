@@ -15,17 +15,11 @@ class DebugAclProvider extends MutableAclProvider
     /** Locates all objects that the specified User has access to.
      *
      *Note that this method has a few limitations:
-     *   *  - No support for filtering by mask.
-     *        *  - No support for ACEs that match one of the User's roles (only ACEs that
-     *             *      reference the User's security identity will be matched).
-     *                  *  - Every ACE that matches is assumed to grant access.
-     *                       *
-     *                            * @param UserInterface $user
-     *                                 * @param string        $type   If set, filter by object type
-     *                                 (classname).
-     *                                      *
-     *                                           * @return ObjectIdentity[]
-     *                                                */
+     *- No support for filtering by mask.
+     *- No support for ACEs that match one of the User's roles
+     * (only ACEs that reference the User's security identity will be matched).
+     *- Every ACE that matches is assumed to grant access.
+     */
     public function findObjectIdentitiesForUser(UserInterface $user, $type = null)
     {
         $securityIdentity = UserSecurityIdentity::fromAccount($user);

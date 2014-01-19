@@ -27,12 +27,6 @@ class SecurityDebugAclVotersCommand extends ContainerAwareCommand
         ->setDefinition(
             array(
                 new InputArgument('username', InputArgument::REQUIRED, "The username for which to debug"),
-                new InputOption(
-                    'strategy',
-                    null,
-                    InputOption::VALUE_REQUIRED,
-                    "Strategy used to authorize. Possible values are: Affirmative (default), Unanimous, Consensus"
-                ),
                 new InputArgument(
                     'fqcn',
                     InputArgument::REQUIRED,
@@ -43,6 +37,12 @@ class SecurityDebugAclVotersCommand extends ContainerAwareCommand
                     'perms',
                     InputArgument::IS_ARRAY | InputArgument::REQUIRED,
                     "Permissions strings, e.g: OWNER"
+                ),
+                new InputOption(
+                    'strategy',
+                    null,
+                    InputOption::VALUE_REQUIRED,
+                    "Strategy used to authorize. Possible values are: Affirmative (default), Unanimous, Consensus"
                 ),
             )
         )
@@ -59,11 +59,13 @@ EOF
         $class = '\\' . str_replace('/', '\\', $input->getArgument('fqcn'));
         $oid = (int) $input->getArgument('oid');
         $strategy = $input->getOption('strategy', false);
+        $userClass = $this->getContainer()->getParameter('egulias_security_debug.user_class');
+        $user = new $userClass($input->getArgument('username'), 'fakepass');
 
         $token = new UsernamePasswordToken(
-            $input->getArgument('username'),
-            'fakepass', //$input->getArgument('password'),
-            'secured_area', //$input->getArgument('firewall')
+            $user,
+            'fakepass',
+            'secured_area',
             $input->getArgument('perms')
         );
 

@@ -21,6 +21,11 @@ class DecisionManagerDebug
 
     public function getDecisionManagerStrategy()
     {
+        if(!$this->strategy) {
+            $rflStrategy = $this->rflClass->getProperty('strategy');
+            $rflStrategy->setAccessible(true);
+            $this->strategy = $rflStrategy->getValue($this->decisionManager);
+        }
         return $this->strategy;
     }
 
