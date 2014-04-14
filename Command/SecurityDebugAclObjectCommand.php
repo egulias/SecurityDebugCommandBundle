@@ -112,7 +112,7 @@ EOF
      */
     protected function getAccesses($acl, array $masks, array $sids, $field = null)
     {
-        $result = [];
+        $result = array();
         foreach ($masks as $mask) {
             $granted = '';
             $denied = 'X';
@@ -131,7 +131,7 @@ EOF
             } catch (NoAceFoundException $e) {
                 $denied = 'With NoAceFoundException: ' . $e->getMessage();
             }
-            $result[] = [$mask, $granted, $denied];
+            $result[] = array($mask, $granted, $denied);
         }
 
         return $result;
