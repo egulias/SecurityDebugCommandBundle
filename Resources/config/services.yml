@@ -1,0 +1,6 @@
+services:
+    data_collector.egulias_security_debug:
+        class: Egulias\SecurityDebugCommandBundle\DataCollector\SecurityDebugDataCollector
+        arguments: [@security.access.decision_manager, @security.context]
+        tags:
+            - { name: data_collector, template: "EguliasSecurityDebugCommandBundle:Collector:security_debug", id: "egulias_security_debug"}

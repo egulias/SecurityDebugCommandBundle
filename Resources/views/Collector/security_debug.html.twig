@@ -1,0 +1,39 @@
+{% extends 'WebProfilerBundle:Profiler:layout.html.twig' %}
+
+{% block toolbar %}
+    {# the web debug toolbar content #}
+    Content!!!!
+{% endblock %}
+
+{% block menu %}
+    <span class="label">
+        <span class="icon">{% spaceless %}
+        <img src="" style="padding-top:5px;" alt="Egulias Security Debug" />
+            {% endspaceless %}</span>
+        <strong>Security Debug</strong>
+    </span>
+{% endblock %}
+
+{% block panel %}
+    <h2>Security Voters</h2>
+    <table>
+        <thead>
+        <tr>
+            <th scope="col">Vote</th>
+            <th scope="col">Voter Class</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for voter in collector.voters %}
+            <tr>
+                <td>
+                    {{ voter.vote }}
+                </td>
+                <td>
+                    {{ voter.class }}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

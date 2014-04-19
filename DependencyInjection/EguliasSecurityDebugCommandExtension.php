@@ -5,8 +5,7 @@ namespace Egulias\SecurityDebugCommandBundle\DependencyInjection;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
-use Symfony\Component\DependencyInjection\Loader;
-
+use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
 class EguliasSecurityDebugCommandExtension extends Extension
 {
@@ -21,5 +20,8 @@ class EguliasSecurityDebugCommandExtension extends Extension
             'egulias_security_debug.user_class',
             $config['user_class']
         );
+
+        $loader = new YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
+        $loader->load('services.yml');
     }
 }
