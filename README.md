@@ -6,7 +6,12 @@ security in a simple way, by inspecting Voters, Listeners and (yet to come) ACL.
 ## IMPORTANT
 
 This bundle fakes credentials and tokens to be able to inspect permissions. This implies a possible security hole in
-your application, please be aware of this. *I'm not responsible for any issue derived for a misuse or an insecure use of it* 
+your application, please be aware of this. *I'm not responsible for any issue derived for a misuse or an insecure use of it*
+
+## Caution
+
+The DataCollector feature re issues the request and some events to be able to inspect the results.
+If any of your custom voters, listeners, firewal listeners has side effects **they will be issued twice**
 
 # Usage
 
