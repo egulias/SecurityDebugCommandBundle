@@ -1,4 +1,17 @@
 {% extends 'WebProfilerBundle:Profiler:layout.html.twig' %}
+{% macro denied(value) %}
+    {% if value == -1 %}style="background-color: red" {% endif %}
+{% endmacro %}
+{% macro decisionText(value) %}
+    {% if value == -1 %}
+        DENIED
+    {% elseif value == 0%}
+        ABSTAIN
+    {% elseif value == 1 %}
+        GRANTED
+    {% endif %}
+{% endmacro %}
+{% import _self as security %}
 
 {% block toolbar %}
     {# the web debug toolbar content #}
@@ -24,13 +37,56 @@
         </tr>
         </thead>
         <tbody>
+
         {% for voter in collector.voters %}
             <tr>
-                <td>
-                    {{ voter.vote }}
+                <td {{ security.denied(voter.vote) }}>
+                    {{ security.decisionText(voter.vote) }}
                 </td>
                 <td>
                     {{ voter.class }}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <h2>Security Firewalls</h2>
+    <table>
+        <thead>
+        <tr>
+            <th scope="col">Result</th>
+            <th scope="col">Firewall listener Class</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for listener in collector.firewall %}
+            <tr>
+                <td {{ security.denied(listener.result) }}>
+                    {{ security.decisionText(listener.result) }}
+                </td>
+                <td>
+                    {{ listener.class }}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <h2>Security Listeners</h2>
+    <table>
+        <thead>
+        <tr>
+            <th scope="col">Result</th>
+            <th scope="col">Listener Class</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for listener in collector.listeners %}
+            <tr>
+                <td {{ security.denied(listener.result) }}>
+                    {{ security.decisionText(listener.result) }}
+                </td>
+                <td>
+                    {{ listener.class }}
                 </td>
             </tr>
         {% endfor %}

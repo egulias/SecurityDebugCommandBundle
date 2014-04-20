@@ -1,6 +1,17 @@
 services:
+    egulias.voters_collector:
+        class: Egulias\SecurityDebugCommandBundle\DataCollector\VotersCollector
+        arguments: [@security.access.decision_manager, @security.context]
+    egulias.firewall_collector:
+        class: Egulias\SecurityDebugCommandBundle\DataCollector\FirewallCollector
+        arguments: [@security.context, @service_container]
+    egulias.security_listeners_debug:
+        class: Egulias\SecurityDebugCommandBundle\EventListener\SecurityListenersDebugListener
+        arguments: [@sensio_framework_extra.security.listener, @data_collector.egulias_security_debug]
+        tags:
+          - {name: kernel.event_listener, event: kernel.exception, priority: 128}
     data_collector.egulias_security_debug:
         class: Egulias\SecurityDebugCommandBundle\DataCollector\SecurityDebugDataCollector
-        arguments: [@security.access.decision_manager, @security.context]
+        arguments: [@egulias.voters_collector, @egulias.firewall_collector]
         tags:
             - { name: data_collector, template: "EguliasSecurityDebugCommandBundle:Collector:security_debug", id: "egulias_security_debug"}
