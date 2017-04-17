@@ -80,11 +80,11 @@ $ php composer.phar update egulias/security-debug-command-bundle
   // app/AppKernel.php
   public function registerBundles()
   {
-    return array(
-      // ...
-      new Egulias\SecurityDebugCommandBundle\EguliasSecurityDebugCommandBundle(),
-      // ...
-      );
+    // ...
+    if (in_array($this->getEnvironment(), array('dev', 'test'))) { 
+      $bundle[] = Egulias\SecurityDebugCommandBundle\EguliasSecurityDebugCommandBundle();
+    }
+    // ...
   }
 ```
 ## Configure the user class
