@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
-use Symfony\Component\Security\Core\SecurityContextInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
 
 /**
  * Class AccessDeniedListener
@@ -18,14 +18,14 @@ class FirewallCollector
 {
     const HAS_RESPONSE = SecurityDebugDataCollector::DENIED;
 
-    private $securityContext;
+    private $tokenStorage;
     private $container;
 
     public function __construct(
-        SecurityContextInterface $securityContext,
+        TokenStorage $tokenStorage,
         Container $container
     ) {
-        $this->securityContext = $securityContext;
+        $this->tokenStorage = $tokenStorage;
         //Container dependency is a bad thing. This is to be refactored to a compiler pass
         //where all the firewall providers will be fetched
         $this->container = $container;
@@ -33,7 +33,7 @@ class FirewallCollector
 
     public function collect(Request $request, \Exception $exception)
     {
-        $token = $this->securityContext->getToken();
+        $token = $this->tokenStorage->getToken();
         if (!method_exists($token, 'getProviderKey')) {
             return;
         }

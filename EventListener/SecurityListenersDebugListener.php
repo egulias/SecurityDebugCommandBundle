@@ -29,6 +29,11 @@ class SecurityListenersDebugListener
         if (!$event->getException() instanceof AccessDeniedException) {
             return;
         }
+
+        if (gettype($event->getRequest()->get('_controller')) == 'string') {
+            return;
+        }
+
         $controller = $event->getRequest()->get('_controller');
         $controllerEvent = new FilterControllerEvent(
             $event->getKernel(),

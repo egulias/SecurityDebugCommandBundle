@@ -11,6 +11,7 @@ use Symfony\Component\Security\Acl\Domain\ObjectIdentity;
 use Symfony\Component\Security\Acl\Domain\UserSecurityIdentity;
 use Symfony\Component\Security\Acl\Exception\NoAceFoundException;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Console\Helper\Table;
 
 /**
  *  ACL Objects debug command
@@ -91,7 +92,7 @@ EOF
             $access = $acl->isGranted($masks, array($securityIdentity), false) ? 'Allow' : 'Deny';
         }
 
-        $table = $this->getHelperSet()->get('table');
+        $table = new Table($output);
         $table->setHeaders(array('Mask', 'Grant', 'Deny'));
         $table->setRows($results);
         $table->render($output);

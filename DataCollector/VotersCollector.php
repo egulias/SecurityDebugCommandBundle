@@ -3,7 +3,7 @@
 namespace Egulias\SecurityDebugCommandBundle\DataCollector;
 
 use Symfony\Component\Security\Core\Authorization\AccessDecisionManagerInterface;
-use Symfony\Component\Security\Core\SecurityContextInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
 use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
 use Egulias\SecurityDebugCommandBundle\Security\Voter\VotersDebug;
 
@@ -14,20 +14,20 @@ use Egulias\SecurityDebugCommandBundle\Security\Voter\VotersDebug;
 class VotersCollector
 {
     private $accessDecisionManager;
-    private $securityContext;
+    private $tokenStorage;
 
     public function __construct(
         AccessDecisionManagerInterface $decisionManager,
-        SecurityContextInterface $securityContext
+        TokenStorage $tokenStorage
     ) {
         $this->accessDecisionManager = $decisionManager;
-        $this->securityContext = $securityContext;
+        $this->tokenStorage = $tokenStorage;
     }
 
     public function collect()
     {
         $votersDebug = new VotersDebug($this->accessDecisionManager);
-        $token = $this->securityContext->getToken();
+        $token = $this->tokenStorage->getToken();
 
         if (!$token || !$token->isAuthenticated()) {
             return;

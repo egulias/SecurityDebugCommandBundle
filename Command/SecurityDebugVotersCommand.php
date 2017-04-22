@@ -12,6 +12,7 @@ use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
 use Egulias\SecurityDebugCommandBundle\Security\Voter\VotersDebug;
 use Egulias\SecurityDebugCommandBundle\Security\Authorization\DecisionManagerDebug;
+use Symfony\Component\Console\Helper\Table;
 
 /**
  *  Voters debug command
@@ -71,7 +72,7 @@ EOF
         );
 
         $output->writeln($formattedLine);
-        $table = $this->getHelperSet()->get('table');
+        $table = new Table($output);
         $table->setHeaders(array('Class', 'Abstain', 'Grant', 'Deny'));
         $votes = $votersDebug->getVotersVote($token);
 

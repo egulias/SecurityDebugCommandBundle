@@ -14,6 +14,7 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Security\Core\Authentication\Token\AnonymousToken;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Egulias\SecurityDebugCommandBundle\HttpKernel\SimpleHttpKernel;
+use Symfony\Component\Console\Helper\Table;
 
 /**
  * @author Eduardo Gulias <me@egulias.com>
@@ -51,7 +52,7 @@ EOF
         $session = $this->getContainer()->get('session');
         $session->setName('security.debug.console');
         $session->set('_security_' . $firewallProvider, serialize($token));
-        $this->getContainer()->get('security.context')->setToken($token);
+        $this->getContainer()->get('security.token_storage')->setToken($token);
 
         $kernel = new SimpleHttpKernel();
         $request = Request::create($uri, 'GET', array(), array('security.debug.console' => true));
@@ -77,7 +78,7 @@ EOF
             sprintf('Firewall <comment>%s</comment> listeners', $firewallProvider)
         );
         $output->writeln($formattedLine);
-        $table = $this->getHelperSet()->get('table');
+        $table = new Table($output);
         $table->setHeaders(array('Class', 'Stopped propagation'));
         $firewallContext = $map->getContext();
         $event = new GetResponseEvent($kernel, $request, HttpKernelInterface::MASTER_REQUEST);
